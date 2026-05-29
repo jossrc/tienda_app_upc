@@ -4,29 +4,24 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.tienda.app.ui.screens.CartScreen
 import com.tienda.app.ui.screens.CatalogScreen
 import com.tienda.app.ui.screens.HomeScreen
 import com.tienda.app.ui.screens.ProductDetailScreen
-import com.tienda.app.ui.theme.TiendaAppTheme
+import com.tienda.app.ui.screens.RegisterProductScreen
 
 sealed class Screen {
     object Home          : Screen()
     object Catalog       : Screen()
-    object ProductDetail : Screen()
+    data class ProductDetail(val codigo: Int) : Screen()
     object Cart          : Screen()
+    object RegisterProduct : Screen()
 }
 
 class MainActivity : ComponentActivity() {
@@ -51,19 +46,25 @@ fun TiendaApp(
         is Screen.Home -> HomeScreen(
             onNavigateToHome = { currentScreen = Screen.Home },
             onNavigateToCatalog = { currentScreen = Screen.Catalog },
-            onNavigateToCart = { currentScreen = Screen.Cart }
+            onNavigateToCart = { currentScreen = Screen.Cart },
+            onNavigateToProductRegister = { currentScreen = Screen.RegisterProduct }
         )
 
         is Screen.Catalog -> CatalogScreen(
             onNavigateToHome = { currentScreen = Screen.Home },
             onNavigateToCatalog = { currentScreen = Screen.Catalog },
-            onNavigateToCart = { currentScreen = Screen.Cart }
+            onNavigateToCart = { currentScreen = Screen.Cart },
+            onViewDetail = { codigo -> currentScreen = Screen.ProductDetail(codigo) }
         )
 
-        is Screen.ProductDetail -> ProductDetailScreen(
-            onBack = { currentScreen = Screen.Catalog },
-            onAddToCart = { currentScreen = Screen.Cart }
-        )
+        is Screen.ProductDetail -> {
+            val pantalla = currentScreen as Screen.ProductDetail
+            ProductDetailScreen(
+                idProducto = pantalla.codigo,
+                onBack = { currentScreen = Screen.Catalog },
+                onNavigateToCart = { currentScreen = Screen.Cart }
+            )
+        }
 
         is Screen.Cart -> CartScreen(
             onNavigateToHome = { currentScreen = Screen.Home },
@@ -72,6 +73,10 @@ fun TiendaApp(
             onCheckOut = { currentScreen = Screen.Home }
         )
 
+        is Screen.RegisterProduct -> RegisterProductScreen(
+            onBack = { currentScreen = Screen.Home },
+            onProductRegistered = { currentScreen = Screen.Catalog }
+        )
 
 
         else -> {}
